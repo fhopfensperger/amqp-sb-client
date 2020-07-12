@@ -5,6 +5,9 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
+  create:
+    tags:
+      - v*
 
 jobs:
   build:
@@ -32,7 +35,6 @@ jobs:
 
       - name: Build
         run: go build -v .
-
 
         #  - name: Test
         #   run: go test -v .
