@@ -16,9 +16,24 @@ limitations under the License.
 package main
 
 import (
+	"os"
+	"time"
+
 	"github.com/fhopfensperger/amqp-sb-client/cmd"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+)
+
+var (
+	// version is set during build
+	version = "0.0.0"
 )
 
 func main() {
-	cmd.Execute()
+	setupLogger()
+	cmd.Execute(version)
+}
+
+func setupLogger() {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339})
 }

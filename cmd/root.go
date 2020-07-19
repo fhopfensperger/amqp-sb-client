@@ -20,6 +20,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/rs/zerolog/log"
+
 	"github.com/pkg/errors"
 
 	"github.com/spf13/cobra"
@@ -32,17 +34,30 @@ var cfgFile string
 var connectionString string
 var queueName string
 
+var globalUsage = `A simple command line utility to send and receive AMQP message to / from Azure Service Bus:
+
+Sending strings:
+amqp-sb-client send "my message" -q queueName -c "Endpoint=sb://host.servicebus.windows.net/;SharedAccessKeyName=..."
+amqp-sb-client receive -q queueName -c "Endpoint=sb://host.servicebus.windows.net/;SharedAccessKeyName=..."
+
+Using json files:
+content test.json: { "key": "value" }
+amqp-sb-client send -f test.json -q queueName -c "Endpoint=sb://host.servicebus.windows.net/;SharedAccessKeyName=..."
+amqp-sb-client receive -q queueName -c "Endpoint=sb://host.servicebus.windows.net/;SharedAccessKeyName=..."
+
+You could also use environment variables for defining the queue and connection string:
+export QUEUE=myQueueName
+export CONNECTION_STRING='Endpoint=sb://host.servicebus.windows.net/'
+amqp-sb-client send -f test.json
+amqp-sb-client receive
+
+ `
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "amqp-sb-client",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Send and receive AMQP message to / from Azure Service Bus",
+	Long:  globalUsage,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	//Run: func(cmd *cobra.Command, args []string) { fmt.Println("hallo from cli") },
@@ -51,9 +66,10 @@ to quickly create a Cobra application.`,
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
+func Execute(version string) {
+	rootCmd.Version = version
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		fmt.Println(globalUsage)
 		os.Exit(1)
 	}
 }
@@ -79,6 +95,8 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
+	rootCmd.SetVersionTemplate(`{{printf "v%s\n" .Version}}`)
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -90,7 +108,7 @@ func initConfig() {
 		// Find home directory.
 		home, err := homedir.Dir()
 		if err != nil {
-			fmt.Println(err)
+			log.Err(err).Msg("Could not find homedir")
 			os.Exit(1)
 		}
 
@@ -101,7 +119,7 @@ func initConfig() {
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+		log.Info().Msgf("Using config file:", viper.ConfigFileUsed())
 	}
 
 	queueName = viper.GetString("queue")

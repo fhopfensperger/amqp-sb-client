@@ -18,10 +18,11 @@ package cmd
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"time"
+
+	"github.com/rs/zerolog/log"
 
 	"github.com/spf13/viper"
 
@@ -33,14 +34,9 @@ import (
 // sendCmd represents the send command
 var sendCmd = &cobra.Command{
 	Use:   "send",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Args: cobra.MinimumNArgs(0),
+	Short: "Send AMQP message to Azure Service Bus",
+	Long:  `Send AMQP message to Azure Service Bus either from a string or from a JSON file`,
+	Args:  cobra.MinimumNArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 		file := viper.GetString("file")
 		if file != "" {
@@ -69,7 +65,7 @@ func init() {
 }
 
 func send(messageContent []byte) {
-	fmt.Printf("Sending message: \n%s\nto %s \n", messageContent, queueName)
+	log.Info().Msgf("Sending message: \n%s\nto %s", messageContent, queueName)
 
 	// Instantiate the clients needed to communicate with a Service Bus Queue.
 	ns, err := servicebus.NewNamespace(servicebus.NamespaceWithConnectionString(connectionString))
@@ -79,6 +75,7 @@ func send(messageContent []byte) {
 
 	client, err := ns.NewQueue(queueName)
 	if err != nil {
+		log.Err(err).Msgf("Could not use queue %s", queueName)
 		return
 	}
 
@@ -90,23 +87,22 @@ func send(messageContent []byte) {
 	message.ContentType = "application/json"
 
 	if err := client.Send(ctx, message); err != nil {
-		// TODO: Logging framework
-		fmt.Println("FATAL: ", err)
+		log.Err(err).Msg("Could not send msg")
 		return
 	}
-	fmt.Printf("Sent message with id %s to %s \n", message.ID, queueName)
+	log.Info().Msgf("Sent message with id %s to %s", message.ID, queueName)
 }
 
 func sendJsonFile(fileName string) {
 	jsonFile, err := os.Open(fileName)
 	if err != nil {
-		fmt.Println(err)
+		log.Err(err).Msg("Could not open file")
 	}
 	defer jsonFile.Close()
 
 	byteValue, err := ioutil.ReadAll(jsonFile)
 	if err != nil {
-		fmt.Println(err)
+		log.Err(err).Msg("Could open file as []byte")
 		return
 	}
 
@@ -114,13 +110,13 @@ func sendJsonFile(fileName string) {
 
 	err = json.Unmarshal(byteValue, &jsonFileContent)
 	if err != nil {
-		fmt.Println(err)
+		log.Err(err).Msg("Could unmarshal file to json")
 		return
 	}
 
 	jsonFileContentMsg, err := jsonFileContent.MarshalJSON()
 	if err != nil {
-		fmt.Println(err)
+		log.Err(err).Msg("Could marshal file to json")
 		return
 	}
 
