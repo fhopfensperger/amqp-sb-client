@@ -17,9 +17,10 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
+
+	"github.com/rs/zerolog/log"
 
 	"github.com/spf13/viper"
 
@@ -31,13 +32,10 @@ import (
 // receiveCmd represents the receive command
 var receiveCmd = &cobra.Command{
 	Use:   "receive",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Receive AMQP messages from Azure Service Bus",
+	Long: `Receive AMQP messages from a Azure Service Bus queue. 
+Finishes either after receiving one message or after a specific duration.
+It can also listen on several queues simultaneously.`,
 	Args: NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		duration := viper.GetDuration("duration")
@@ -89,18 +87,18 @@ func receiveOne(queueName string, wg *sync.WaitGroup) {
 	if wg != nil {
 		defer wg.Done()
 	}
-	fmt.Printf("Receiving one message from: %s \n", queueName)
+	log.Info().Msgf("Receiving one message from: %s", queueName)
 
 	// Instantiate the clients needed to communicate with a Service Bus Queue.
 	ns, err := servicebus.NewNamespace(servicebus.NamespaceWithConnectionString(connectionString))
 	if err != nil {
-		fmt.Printf("Receiving failed: %s \n", err)
+		log.Err(err).Msg("Receiving failed! Check connection string.")
 		return
 	}
 
 	client, err := ns.NewQueue(queueName)
 	if err != nil {
-		fmt.Printf("Receiving failed: %s \n", err)
+		log.Err(err).Msgf("Could not open queue %s", queueName)
 		return
 	}
 
@@ -109,7 +107,7 @@ func receiveOne(queueName string, wg *sync.WaitGroup) {
 	defer cancel()
 
 	if err := client.ReceiveOne(ctx, printMessage); err != nil {
-		fmt.Printf("FATAL: ", err)
+		log.Err(err).Msgf("Could not ReceiveOne from queue %s", queueName)
 	}
 }
 
@@ -117,18 +115,18 @@ func receiveWitDuration(queueName string, duration time.Duration, wg *sync.WaitG
 	if wg != nil {
 		defer wg.Done()
 	}
-	fmt.Printf("Receiving messages from: %s for: %s \n", queueName, duration)
+	log.Info().Msgf("Receiving messages from: %s for: %s", queueName, duration)
 
 	// Instantiate the clients needed to communicate with a Service Bus Queue.
 	ns, err := servicebus.NewNamespace(servicebus.NamespaceWithConnectionString(connectionString))
 	if err != nil {
-		fmt.Printf("Receiving failed: %s \n", err)
+		log.Err(err).Msg("Receiving failed! Check connection string.")
 		return
 	}
 
 	client, err := ns.NewQueue(queueName)
 	if err != nil {
-		fmt.Printf("Receiving failed: %s \n", err)
+		log.Err(err).Msgf("Could not open queue %s", queueName)
 		return
 	}
 
@@ -137,17 +135,14 @@ func receiveWitDuration(queueName string, duration time.Duration, wg *sync.WaitG
 	defer cancel()
 
 	if err := client.Receive(ctx, printMessage); err != nil {
-		fmt.Println("FATAL: ", err)
+		log.Err(err).Msgf("Could not Receive from queue %s", queueName)
 	}
 }
 
 // Define a function that should be executed when a message is received.
 var printMessage servicebus.HandlerFunc = func(ctx context.Context, msg *servicebus.Message) error {
-	//if msg.Data == nil {
-	//	fmt.Printf("Message:\n%s\nreceived from %s \n", string(msg.Data), queueName)
-	//} else {
-	fmt.Printf("Message:\n%v\nreceived from %s \n", string(msg.Data), queueName)
-	//}
+
+	log.Info().Msgf("Message:\n%v\nreceived from %s", string(msg.Data), queueName)
 
 	return msg.Complete(ctx)
 }
