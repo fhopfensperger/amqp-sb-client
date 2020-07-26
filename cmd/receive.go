@@ -1,5 +1,5 @@
 /*
-Copyright © 2020 NAME HERE <EMAIL ADDRESS>
+Copyright © 2020 Florian Hopfensperger <f.hopfensperger@gmail.com>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -130,7 +130,7 @@ func receiveWitDuration(queueName string, duration time.Duration, wg *sync.WaitG
 		return
 	}
 
-	// Define a context to limit how long we will block to receiveOne messages, then start serving our function.
+	// Define a context to limit how long we will block to receive messages, then start serving our function.
 	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
 
