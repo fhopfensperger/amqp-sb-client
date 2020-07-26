@@ -31,6 +31,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var delay time.Duration
+
 // sendCmd represents the send command
 var sendCmd = &cobra.Command{
 	Use:   "send",
@@ -38,6 +40,7 @@ var sendCmd = &cobra.Command{
 	Long:  `Send AMQP message to Azure Service Bus either from a string or from a JSON file`,
 	Args:  cobra.MinimumNArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
+		delay = viper.GetDuration("schedule")
 		file := viper.GetString("file")
 		if file != "" {
 			sendJsonFile(file)
@@ -62,6 +65,10 @@ func init() {
 	flags := sendCmd.Flags()
 	flags.StringP("file", "f", "", "Sends .json file to Queue (must be .json)")
 	viper.BindPFlag("file", flags.Lookup("file"))
+
+	flags.DurationP("schedule", "s", delay, "Sends scheduled message; Delay specified as duration: 10m, 1h, 1h10m, 1h10m10s")
+	viper.BindPFlag("schedule", flags.Lookup("schedule"))
+
 }
 
 func send(messageContent []byte) {
@@ -86,11 +93,22 @@ func send(messageContent []byte) {
 	message := servicebus.NewMessage(messageContent)
 	message.ContentType = "application/json"
 
-	if err := client.Send(ctx, message); err != nil {
-		log.Err(err).Msg("Could not send msg")
-		return
+	if delay.Milliseconds() > 0 {
+		expectedTime := time.Now().Add(delay)
+		sequenceNo, err := client.ScheduleAt(ctx, expectedTime, message)
+		if err != nil {
+			log.Err(err).Msg("Could not send scheduled msg")
+			return
+		}
+		log.Info().Msgf("Scheduled message with id: %s and sequence number %v will be delivered at %s to %s", message.ID, sequenceNo, expectedTime.UTC(), queueName)
+	} else {
+		if err := client.Send(ctx, message); err != nil {
+			log.Err(err).Msg("Could not send msg")
+			return
+		}
+		log.Info().Msgf("Sent message with id %s to %s", message.ID, queueName)
 	}
-	log.Info().Msgf("Sent message with id %s to %s", message.ID, queueName)
+
 }
 
 func sendJsonFile(fileName string) {

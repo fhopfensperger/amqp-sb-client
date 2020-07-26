@@ -29,6 +29,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var duration time.Duration
+
 // receiveCmd represents the receive command
 var receiveCmd = &cobra.Command{
 	Use:   "receive",
@@ -38,7 +40,7 @@ Finishes either after receiving one message or after a specific duration.
 It can also listen on several queues simultaneously.`,
 	Args: NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		duration := viper.GetDuration("duration")
+		duration = viper.GetDuration("duration")
 		multipleQueues := viper.GetStringSlice("multiple-queues")
 		if len(multipleQueues) > 0 {
 			var wg sync.WaitGroup
@@ -76,7 +78,7 @@ func init() {
 	// receiveCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
 	flags := receiveCmd.Flags()
-	flags.StringP("duration", "d", "", "Listen on queue for duration, example: 10m, 1h, 1h10m, 1h10m10s")
+	flags.DurationP("duration", "d", duration, "Listen on queue for duration, example: 10m, 1h, 1h10m, 1h10m10s")
 	viper.BindPFlag("duration", flags.Lookup("duration"))
 
 	flags.StringSliceP("multiple-queues", "m", []string{}, "Listen on multiple queues, example: queue1,queue2")
@@ -103,7 +105,7 @@ func receiveOne(queueName string, wg *sync.WaitGroup) {
 	}
 
 	// Define a context to limit how long we will block to receiveOne messages, then start serving our function.
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Hour)
 	defer cancel()
 
 	if err := client.ReceiveOne(ctx, printMessage); err != nil {
