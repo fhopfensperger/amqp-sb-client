@@ -19,6 +19,7 @@
 # and the Helm install script https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
 : ${INSTALL_DIR:="/usr/local/bin"}
 : ${BINARY_NAME:="amqp-sb-client"}
+: ${USE_SUDO:="true"}
 
 installNotes() {
   echo "Installing ${BINARY_NAME}..."
@@ -56,7 +57,7 @@ initOS() {
 runAsRoot() {
   local CMD="$*"
 
-  if [ $EUID -ne 0 ]; then
+  if [ $EUID -ne 0 -a $USE_SUDO = "true" ]; then
     CMD="sudo $CMD"
   fi
 
@@ -117,13 +118,7 @@ downloadAndInstall() {
 
   echo "Copy ${BINARY_NAME} to ${INSTALL_DIR}"
   runAsRoot mv ${BINARY_NAME} ${INSTALL_DIR}/
-  runAsRoot chmod +x /usr/local/bin/${BINARY_NAME}
-
-  location=$(which $BINARY_NAME)
-  echo "${BINARY_NAME} binary location: $location"
-
-  version="$($BINARY_NAME -v)"
-  echo "${BINARY_NAME} binary version: $version"
+  runAsRoot chmod +x ${INSTALL_DIR}/${BINARY_NAME}
 
   rm /tmp/${BINARY_NAME}.tar.gz
 }
