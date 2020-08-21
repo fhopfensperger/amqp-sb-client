@@ -22,6 +22,8 @@ github.com/Azure/azure-service-bus-go v0.10.3 h1:Je98KRf2rryV77OMpeovlqFHj/UIwLv
 github.com/Azure/azure-service-bus-go v0.10.3/go.mod h1:E/FOceuKAFUfpbIJDKWz/May6guE+eGibfGT6q+n1to=
 github.com/Azure/azure-service-bus-go v0.10.4 h1:VpltBV7BRoluWWW/xDA1Ai4EWKpvMDM3/GsxISsgmrE=
 github.com/Azure/azure-service-bus-go v0.10.4/go.mod h1:1tX7Ap1oTgovUJ9iUtMOjM9I/xcvjyZ0VMWzNF0cBf0=
+github.com/Azure/azure-service-bus-go v0.10.6 h1:xjxJf6rnEoX5yCCoKiXe5VPJAxdXZU1e2zgSkHMBRR8=
+github.com/Azure/azure-service-bus-go v0.10.6/go.mod h1:1tX7Ap1oTgovUJ9iUtMOjM9I/xcvjyZ0VMWzNF0cBf0=
 github.com/Azure/go-amqp v0.12.6 h1:34yItuwhA/nusvq2sPSNPQxZLCf/CtaogYH8n578mnY=
 github.com/Azure/go-amqp v0.12.6/go.mod h1:qApuH6OFTSKZFmCOxccvAv5rLizBQf4v8pRmG138DPo=
 github.com/Azure/go-amqp v0.13.0/go.mod h1:qj+o8xPCz9tMSbQ83Vp8boHahuRDl5mkNHyt1xlxUTs=
