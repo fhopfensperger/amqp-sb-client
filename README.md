@@ -1,5 +1,8 @@
 # amqp-sb-client
 ![Go](https://github.com/fhopfensperger/amqp-sb-client/workflows/Go/badge.svg)
+[![Go Report Card](https://goreportcard.com/badge/github.com/fhopfensperger/amqp-sb-client)](https://goreportcard.com/report/github.com/fhopfensperger/amqp-sb-client)
+[![Release](https://img.shields.io/github/release/fhopfensperger/amqp-sb-client.svg?style=flat-square)](https://github.com//fhopfensperger/amqp-sb-client/releases/latest)
+
 
 Sends and receives AMQP messages to / from Azure Service Bus
 
