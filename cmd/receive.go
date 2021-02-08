@@ -42,21 +42,28 @@ It can also listen on several queues simultaneously.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		duration = viper.GetDuration("duration")
 		multipleQueues := viper.GetStringSlice("multiple-queues")
+		parallel := viper.GetInt("parallel")
+		var wg sync.WaitGroup
 		if len(multipleQueues) > 0 {
-			var wg sync.WaitGroup
 
 			for _, q := range multipleQueues {
-				wg.Add(1)
-				if duration.Milliseconds() > 0 {
-					go receiveWitDuration(q, duration, &wg)
-				} else {
-					go receiveOne(q, &wg)
+				for numberOfWorker := 0; numberOfWorker < parallel; numberOfWorker++ {
+					wg.Add(1)
+					if duration.Milliseconds() > 0 {
+						go receiveWitDuration(q, duration, &wg)
+					} else {
+						go receiveOne(q, &wg)
+					}
 				}
 			}
 			wg.Wait()
 
 		} else if duration.Milliseconds() > 0 {
-			receiveWitDuration(queueName, duration, nil)
+			for numberOfWorker := 0; numberOfWorker < parallel; numberOfWorker++ {
+				wg.Add(1)
+				go receiveWitDuration(queueName, duration, &wg)
+			}
+			wg.Wait()
 			return
 		} else {
 			receiveOne(queueName, nil)
@@ -83,6 +90,9 @@ func init() {
 
 	flags.StringSliceP("multiple-queues", "m", []string{}, "Listen on multiple queues, example: queue1,queue2")
 	viper.BindPFlag("multiple-queues", flags.Lookup("multiple-queues"))
+
+	flags.IntP("parallel", "p", 1, `Run x multiple listener in parallel. Must be combined with "duration"`)
+	viper.BindPFlag("parallel", flags.Lookup("parallel"))
 }
 
 func receiveOne(queueName string, wg *sync.WaitGroup) {
