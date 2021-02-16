@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package cmd
 
 import (
@@ -43,7 +44,7 @@ var sendCmd = &cobra.Command{
 		delay = viper.GetDuration("schedule")
 		file := viper.GetString("file")
 		if file != "" {
-			sendJsonFile(file)
+			sendJSONFile(file)
 			return
 		}
 		send([]byte(args[0]))
@@ -111,7 +112,7 @@ func send(messageContent []byte) {
 
 }
 
-func sendJsonFile(fileName string) {
+func sendJSONFile(fileName string) {
 	jsonFile, err := os.Open(fileName)
 	if err != nil {
 		log.Err(err).Msg("Could not open file")

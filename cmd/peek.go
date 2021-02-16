@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package cmd
 
 import (
@@ -60,6 +61,9 @@ func peek(queueName string) {
 	}
 
 	messageIterator, err := client.Peek(ctx)
+	if err != nil {
+		log.Err(err).Msgf("Could not peek message for queue %s", queueName)
+	}
 	for !messageIterator.Done() {
 		msg, err := messageIterator.Next(ctx)
 		if err != nil {
