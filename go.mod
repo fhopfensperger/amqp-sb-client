@@ -1,6 +1,6 @@
 module github.com/fhopfensperger/amqp-sb-client
 
-go 1.14
+go 1.16
 
 require (
 	github.com/Azure/azure-service-bus-go v0.10.9
