@@ -1,3 +1,11 @@
+|![](https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Warning.svg/156px-Warning.svg.png) | This project is no longer supported.
+|---|---|
+# ⚠️ Deprecation and Archive Notice
+
+The functionality of this command line tool moved to [async-messaging-client](https://github.com/fhopfensperger/async-messaging-client)
+
+
+
 # amqp-sb-client
 ![Go](https://github.com/fhopfensperger/amqp-sb-client/workflows/Go/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/fhopfensperger/amqp-sb-client)](https://goreportcard.com/report/github.com/fhopfensperger/amqp-sb-client)
